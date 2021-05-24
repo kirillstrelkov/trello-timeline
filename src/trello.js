@@ -189,7 +189,7 @@ $(document).on("input", "#boardSelect", (event) => loadTimeline());
 
 const visOnAdd = (event, properties, senderId) =>
   Array.from(properties.items).map((id, i) =>
-    setTimeout(() => format_project(id), 1000)
+    setTimeout(() => format_project(id), 500)
   );
 
 var visInit = function () {
