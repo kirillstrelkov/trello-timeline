@@ -1,0 +1,39 @@
+#visualization .vis-current-time {
+  z-index: 2;
+}
+
+.vis-item.vis-range {
+	 border: 0;
+}
+ .vis-item.vis-range .vis-item-overflow .vis-item-content {
+	 display: block;
+	 padding: 0;
+}
+ .vis-item.vis-range .vis-item-overflow .vis-item-content .project.panel {
+	 margin: 0;
+}
+ .vis-item.vis-range .vis-item-overflow .vis-item-content .project.panel .panel-body {
+	 padding-top: 0;
+	 padding-left: 0;
+	 padding-right: 0;
+}
+ 
+
+.panel.card {
+	 margin: 0;
+}
+ .panel.card .panel-body {
+	 padding: 0;
+}
+ .panel.card .progress {
+	 margin-bottom: 0;
+	 background-color: white;
+}
+ .panel.card .panel-footer {
+	 padding-right: 0;
+	 padding-left: 0;
+}
+ .panel.card .panel-footer .end-date {
+	 float: right;
+}
+ 
