@@ -18,6 +18,10 @@
 	 padding-right: 0;
 }
  
+.vis-item-content {
+	width: 100% !important;
+	left: 0 !important; 
+}
 
 .panel.card {
 	 margin: 0;

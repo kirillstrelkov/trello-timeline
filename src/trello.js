@@ -78,7 +78,7 @@ const drawCard = function (card, progressValue) {
         ${progressValue}%
         </span>
       </div>
-      <div class="progress-bar progress-bar-danger negative" role="progressbar" style="width: 0.0%;">
+      <div class="progress-bar progress-bar-danger negative" role="progressbar">
         <span></span>
       </div>
     </div>
@@ -198,7 +198,6 @@ var visInit = function () {
 
   const viz = $("#visualization");
   if (viz.length > 0 && viz.children().length === 0) {
-    let visTimeline;
     const container = viz[0];
     const options = {
       zoomable: false,
@@ -206,11 +205,7 @@ var visInit = function () {
       end: moment().add(1, "months"),
       selectable: false,
     };
-    return (visTimeline = new vis.Timeline(
-      container,
-      window.visDataSet,
-      options
-    ));
+    const visTimeline = new vis.Timeline(container, window.visDataSet, options);
   }
 };
 
@@ -231,72 +226,69 @@ var formatDatetime = function (datetime, dateOnly) {
   return datetime.format(datetime_format);
 };
 
-const format_projects = (id) => window.visDataSet.forEach(format_project);
-
-var format_project = function (id) {
-  const project = $(`#${id}`);
-
-  const start_datetime = moment(
-    $(project).find(".progress").data("date-start")
-  );
-  const end_datetime = moment($(project).find(".progress").data("date-end"));
-
-  const timestamps = $.map(project.find(".bar-step"), (m) =>
-    get_timestamp(get_data(m, "data-date"))
-  );
-  const width = project.find(".progress").width();
-
-  const min_timestamp = Math.min.apply(null, timestamps);
-  const max_timestamp = Math.max.apply(null, timestamps);
-  project.find(".bar-step").each(function (index) {
-    const timestamp = get_timestamp(get_data(this, "data-date"));
-
-    let shift =
-      ((timestamp - min_timestamp) / (max_timestamp - min_timestamp)) * width;
-    if (shift === width) {
-      const text_width = $(this).find(".bar-text").width();
-      shift = shift - text_width;
-    }
-
-    return $(this).css("margin-left", shift + "px");
+var format_projects = function (id) {
+  window.visDataSet.forEach((obj) => {
+    format_project(obj.id);
   });
-
-  return update_progress_bars(project);
 };
 
-var update_progress_bars = function (project) {
+var format_project = function (id) {
+  update_progress_bars(id);
+};
+
+var update_progress_bars = function (id) {
+  const $project = $(`#${id}`);
+  const $progress = $project.find(".progress");
+
+  if ($progress.hasClass("bars-updated")) {
+    return;
+  }
+
   const current_datetime = moment();
   const current_progress = parseFloat(
-    $(project).find(".progress-bar.positive span").text()
+    $project.find(".progress-bar.positive span").text()
   );
-  const start_datetime = moment(
-    $(project).find(".progress").data("date-start")
-  );
-  const end_datetime = moment($(project).find(".progress").data("date-end"));
-  const expected_progress = get_progress(
-    start_datetime,
+  const expected_progress = get_expected_progress(
+    moment($progress.data("date-start")),
     current_datetime,
-    end_datetime
+    moment($progress.data("date-end"))
   );
-  let progress_diff = round(expected_progress - current_progress);
-  if (progress_diff > 100.0) {
-    progress_diff = round(100.0 - current_progress);
+  if (current_progress > expected_progress) {
+    return;
   }
-  $(project).find(".progress-bar.negative span").text(`${progress_diff}%`);
-  return $(project).find(".progress-bar.negative").width(`${progress_diff}%`);
+
+  const vis_position = parseFloat(
+    $project.parent().parent().parent().css("left")
+  );
+  const cur_time_position = parseFloat($(".vis-current-time").css("left"));
+
+  // update positive bar
+  const width = cur_time_position - vis_position;
+
+  let positive_progress = $project.find(".progress-bar.positive").width();
+  $project.find(".progress-bar.positive").width(`${positive_progress}px`);
+
+  // update negative bar
+  const progress_diff = round(expected_progress - current_progress);
+  if (progress_diff > 0) {
+    $project.find(".progress-bar.negative span").text(`${progress_diff}%`);
+
+    let negative_progress =
+      width - $project.find(".progress-bar.positive").width();
+    $project.find(".progress-bar.negative").width(`${negative_progress}px`);
+  }
+
+  $progress.addClass("bars-updated");
 };
 
 var round = (number) => Math.round(number * 100) / 100;
 
-var get_progress = function (start, current, end) {
-  if (start.isBefore(end)) {
+var get_expected_progress = function (start, current, end) {
+  if (current.isAfter(end)) {
+    return 100.0;
+  } else if (current.isBetween(start, end)) {
     return round(((current - start) / (end - start)) * 100);
   } else {
     return 0.0;
   }
 };
-
-var get_timestamp = (date_string) =>
-  Date.parse(date_string.replace(" UTC", "Z"));
-
-var get_data = (obj, key) => $(obj).attr(key);
