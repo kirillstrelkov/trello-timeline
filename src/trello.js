@@ -226,7 +226,7 @@ var formatDatetime = function (datetime, dateOnly) {
   return datetime.format(datetime_format);
 };
 
-var format_projects = function (id) {
+var format_projects = function () {
   window.visDataSet.forEach((obj) => {
     format_project(obj.id);
   });
@@ -245,13 +245,14 @@ var update_progress_bars = function (id) {
   }
 
   const current_datetime = moment();
+  const end_datetime = moment($progress.data("date-end"));
   const current_progress = parseFloat(
     $project.find(".progress-bar.positive span").text()
   );
   const expected_progress = get_expected_progress(
     moment($progress.data("date-start")),
     current_datetime,
-    moment($progress.data("date-end"))
+    end_datetime
   );
   if (current_progress > expected_progress) {
     return;
@@ -263,7 +264,9 @@ var update_progress_bars = function (id) {
   const cur_time_position = parseFloat($(".vis-current-time").css("left"));
 
   // update positive bar
-  const width = cur_time_position - vis_position;
+  const width = current_datetime.isBefore(end_datetime)
+    ? cur_time_position - vis_position
+    : $project.find(".progress").width();
 
   let positive_progress = $project.find(".progress-bar.positive").width();
   $project.find(".progress-bar.positive").width(`${positive_progress}px`);
